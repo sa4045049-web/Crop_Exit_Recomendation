@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CropExit Intelligence</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">CE</div>
+    <div><b>CropExit</b><span>Intelligence</span></div>
+  </div>
+  <div class="top-pill">AI DECISION SUPPORT · PC PROTOTYPE</div>
+</header>
+
+<main class="container">
+<section class="hero">
+  <div>
+    <p class="eyebrow">FROM CROP DATA → MONEY DECISION</p>
+    <h1>Know <span>when to hold, sell or exit.</span></h1>
+    <p class="hero-text">A decision engine that combines market trend, crop economics, weather risk and holding cost to estimate the best next move.</p>
+  </div>
+  <div class="hero-card">
+    <div class="mini-label">CORE IDEA</div>
+    <strong>Don't just ask “What should I grow?”</strong>
+    <p>Ask “What should I do with the crop I already have?”</p>
+  </div>
+</section>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="input">01 · Farm & Market</button>
+  <button class="tab" data-tab="decision">02 · AI Decision</button>
+  <button class="tab" data-tab="simulator">03 · What-If & Compare</button>
+</nav>
+
+<section id="input" class="tab-panel active">
+  <div class="panel form-panel">
+    <div class="panel-title"><span>01</span><div><h2>Farm & Market Information</h2><p>Enter the basic information about the crop you already have.</p></div></div>
+    <div class="step-banner"><div><b>INPUT</b><span>Crop → Land → Price → Time → Risk → Cost</span></div><div class="step-number">1 / 3</div></div>
+    <div class="form-grid">
+      <label>Crop<select id="crop">{% for crop in crops %}<option>{{ crop }}</option>{% endfor %}</select></label>
+      <label>Farm area (acres)<input id="area" type="number" value="2" min="0.1" step="0.1"></label>
+      <label>Current market price (₹ / unit)<input id="current_price" type="number" value="2450" min="1"></label>
+      <label>Approx. days left to harvest/decision<input id="days_left" type="number" value="60" min="1"></label>
+      <label>Rainfall risk (0–100)<input id="rainfall_risk" type="number" value="30" min="0" max="100"></label>
+      <label>Temperature risk (0–100)<input id="temp_risk" type="number" value="25" min="0" max="100"></label>
+      <label>Extra cost per acre (₹)<input id="extra_cost" type="number" value="0" min="0"></label>
+      <label>Storage months<input id="storage_months" type="number" value="0" min="0" max="12" step="0.5"></label>
+    </div>
+    <button class="primary" onclick="analyze()">Continue to AI Decision <span>→</span></button>
+    <p class="note">Prototype uses bundled demo market history. Replace it with verified mandi data before real-world use.</p>
+  </div>
+  <div class="input-explanation"><div><b>Why these inputs?</b><span>The system combines market, economics, time and environmental risk instead of looking at crop price alone.</span></div><div><b>Next step</b><span>After submission, the second tab automatically opens the AI decision dashboard.</span></div></div>
+</section>
+
+<section id="decision" class="tab-panel">
+  <div class="panel decision-panel">
+    <div class="panel-title"><span>02</span><div><h2>AI Decision & Profit Dashboard</h2><p>See what the system recommends and why.</p></div></div>
+    <div class="step-banner"><div><b>DECISION</b><span>Market trend + risk + break-even + profit</span></div><div class="step-number">2 / 3</div></div>
+    <div id="emptyState" class="empty">Complete Tab 01 to generate your CropExit decision.</div>
+    <div id="result" class="hidden">
+      <div class="decision-head"><div><small>RECOMMENDED ACTION</small><h3 id="decision"></h3></div><div class="confidence"><b id="confidence">--</b><span>confidence</span></div></div>
+      <div class="score-row"><div class="score"><span>Risk</span><b id="risk">--</b></div><div class="score"><span>Future price</span><b id="futurePrice">--</b></div><div class="score"><span>Future profit</span><b id="futureProfit">--</b></div><div class="score"><span>Break-even</span><b id="breakEven">--</b></div></div>
+      <div class="chart-wrap"><canvas id="priceChart"></canvas></div>
+      <div class="reasons"><h4>Why did AI choose this?</h4><ul id="reasons"></ul></div>
+    </div>
+  </div>
+  <div class="panel economics"><div class="panel-title"><span>02B</span><div><h2>Financial Outcome</h2><p>Convert the prediction into understandable money values.</p></div></div><div class="money-grid"><div><small>Revenue if sold now</small><strong id="revNow">₹--</strong></div><div><small>Expected future revenue</small><strong id="futureRev">₹--</strong></div><div><small>Current profit</small><strong id="profitNow">₹--</strong></div><div><small>Projected profit</small><strong id="profitFuture">₹--</strong></div><div><small>Profit margin</small><strong id="margin">--%</strong></div><div><small>Price movement</small><strong id="movement">--%</strong></div></div></div>
+  <button class="secondary-next" onclick="document.querySelector('[data-tab=simulator]').click()">Go to What-If & Crop Comparison →</button>
+</section>
+
+<section id="simulator" class="tab-panel">
+  <div class="panel"><div class="panel-title"><span>03</span><div><h2>What-If Decision Simulator</h2><p>Compare different actions before taking the real decision.</p></div></div><div class="step-banner"><div><b>SIMULATE</b><span>Sell now vs wait vs stress case</span></div><div class="step-number">3 / 3</div></div><div class="scenario-grid" id="scenarioGrid"><div class="empty">Run Tab 01 first to generate scenarios.</div></div><div class="callout"><b>Unique decision layer:</b> instead of only predicting price, the system compares the economic result of different actions after holding/storage costs.</div></div>
+  <div class="panel"><div class="panel-title"><span>03B</span><div><h2>Crop Comparator</h2><p>Compare the economic outcome of different crops on the same land area.</p></div></div><div class="compare-controls"><label>Area (acres)<input id="compareArea" type="number" value="2" min="0.1" step="0.1"></label><label>Choose up to 4 crops<select id="compareCrops" multiple size="7">{% for crop in crops %}<option selected>{{ crop }}</option>{% endfor %}</select></label><button class="primary" onclick="compareCrops()">Compare crops →</button></div><div id="compareTable" class="table-wrap"></div></div>
+</section>
+
+<section class="usp">
+  <div><p class="eyebrow">WHY THIS IS DIFFERENT</p><h2>A crop advisory is not the same as a crop exit engine.</h2></div>
+  <div class="usp-list">
+    <div><b>01 · Exit Window</b><span>Find the financial window where waiting stops making sense.</span></div>
+    <div><b>02 · Break-even Intelligence</b><span>Calculate the minimum viable selling price after field + holding cost.</span></div>
+    <div><b>03 · What-if Economics</b><span>Compare sell-now, wait, and stress-case outcomes in rupees.</span></div>
+    <div><b>04 · Risk-adjusted Profit</b><span>Profit is scored together with market and weather risk.</span></div>
+  </div>
+</section>
+
+<footer>
+  <span>CropExit Intelligence · Academic Prototype</span>
+  <span>For demonstration and decision-support research only.</span>
+</footer>
+</main>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
